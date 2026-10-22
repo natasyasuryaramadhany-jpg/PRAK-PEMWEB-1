@@ -8,7 +8,7 @@
 require_once __DIR__ . '/includes/functions.php';
 
 // Ambil parameter npm dari URL
-$npm = $_GET['npm'] ?? '';
+$npm = $_GET['id'] ?? '';
 
 if (!empty($npm)) {
     $hasil = hapus_mahasiswa($npm);
@@ -22,18 +22,5 @@ if (!empty($npm)) {
 }
 
 // Redirect kembali ke halaman utama
-$npm = $_GET['npm'] ?? '';
-
-if (!empty($npm)) {
-    $hasil = hapus_mahasiswa($npm);
-    if ($hasil['status']) {
-        set_flash_message('succes', $hasil['message']);
-    } else {
-        set_flash_message('danger', $hasil['message']);
-    }
-} else {
-    set_flash_message('danger', 'npm mahasiswa yang akan dihapus tidak ditentukan!');
-}
-
 header('Location: index.php#daftar-mahasiswa');
 exit;

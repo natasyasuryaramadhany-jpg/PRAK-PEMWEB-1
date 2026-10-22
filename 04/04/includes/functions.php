@@ -14,38 +14,38 @@ if (session_status() === PHP_SESSION_NONE) {
  * Inisialisasi data mahasiswa pada session jika belum ada
  */
 function init_mahasiswa_session() {
-    if (!isset($_SESSION[ 'daftar_mahasiswa']) ) {
-        $_SESSION[ 'daftar_mahasiswa'] = [
+    if (!isset($_SESSION['daftar_mahasiswa'])) {
+        $_SESSION['daftar_mahasiswa'] = [
             [
                 'npm' => '230101001',
                 'nama' => 'Ahmad Fauzi',
                 'program_studi' => 'Teknik Informatika',
                 'angkatan' => 2023,
-                'eamil' => 'ahmadfauzi@example.com'
+                'email' => 'ahmad.fauzi@example.com'
             ],
             [
                 'npm' => '230101002',
                 'nama' => 'Siti Nurhaliza',
                 'program_studi' => 'Sistem Informasi',
                 'angkatan' => 2023,
-                'eamil' => 'siti.nurhaliza@example.com' 
+                'email' => 'siti.nurhaliza@example.com'
             ],
             [
                 'npm' => '240101015',
                 'nama' => 'Budi Santoso',
-                'program_studi' => 'Teknologi Informasi',
+                'program_studi' => 'Teknik Informatika',
                 'angkatan' => 2024,
-                'eamil' => 'budi.santoso@example.com'
+                'email' => 'budi.santoso@example.com'
             ]
         ];
-    }    
+    }
 }
 
 /**
  * Sanitasi string input untuk keamanan XSS
  */
 function sanitize($data) {
-   return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
 }
 
 /**
@@ -79,8 +79,8 @@ function get_all_mahasiswa($keyword = '') {
  * Menghitung total data mahasiswa yang tersimpan
  */
 function count_total_mahasiswa() {
- init_mahasiswa_session();
- return count($_SESSION[ 'daftar_mahasiswa'])   
+    init_mahasiswa_session();
+    return count($_SESSION['daftar_mahasiswa']);
 }
 
 /**
@@ -88,15 +88,14 @@ function count_total_mahasiswa() {
  */
 function tambah_mahasiswa($npm, $nama, $program_studi, $angkatan, $email) {
     init_mahasiswa_session();
- 
-        $npm = sanitize($npm);
-        $nama = sanitize($nama);
-        $program_studi = sanitize($program_studi);
-        $angkatan = (int) $angkatan;
-        $email = sanitize($email);
+
     // Sanitasi data
     // Percobaan 4-3 Langkah 3
-    
+    $npm = sanitize($npm);
+    $nama = sanitize($nama);
+    $program_studi = sanitize($program_studi);
+    $angkatan = sanitize($angkatan);
+    $email = sanitize($email);
 
     // Validasi Server-Side
     if (empty($npm) || empty($nama) || empty($program_studi) || empty($angkatan) || empty($email)) {
@@ -195,23 +194,22 @@ function hapus_mahasiswa($npm) {
 /**
  * Set flash message untuk feedback notifikasi pengguna
  */
-
-
-/**
- * Ambil dan hapus flash message
- */function set_flash_message ($type, $message) {
+function set_flash_message($type, $message) {
     $_SESSION['flash_message'] = [
         'type' => $type,
         'message' => $message
     ];
- }
+}
 
- function get_flash_message() {
+/**
+ * Ambil dan hapus flash message
+ */
+function get_flash_message() {
     if (isset($_SESSION['flash_message'])) {
-        $flash = $_SESSION['flash_message'];
+        $message = $_SESSION['flash_message'];
         unset($_SESSION['flash_message']);
-        return $flash;
+        return $message;
     }
-    return null;
- }
 
+    return null;
+}
