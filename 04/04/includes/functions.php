@@ -2,10 +2,9 @@
 /**
  * Praktikum 4: Implementasi Aplikasi Web Dinamis Menggunakan PHP
  * File: includes/functions.php
- * Kumpulan fungsi modular untuk pengelolaan data mahasiswa di server.
  */
 
-// Memulai session jika belum aktif
+// Memulai sesi PHP
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -49,7 +48,7 @@ function sanitize($data) {
 }
 
 /**
- * Mengambil semua data mahasiswa dengan opsi filter pencarian
+ * Mengambil seluruh data mahasiswa atau berdasarkan pencarian keyword
  */
 function get_all_mahasiswa($keyword = '') {
     init_mahasiswa_session();
@@ -59,14 +58,14 @@ function get_all_mahasiswa($keyword = '') {
         return $data;
     }
 
-    $keyword = strtolower(trim($keyword));
     $filtered = [];
+    $keyword = strtolower(trim($keyword));
 
     foreach ($data as $mhs) {
         if (
-            str_contains(strtolower($mhs['npm']), $keyword) || 
-            str_contains(strtolower($mhs['nama']), $keyword) ||
-            str_contains(strtolower($mhs['program_studi']), $keyword)
+            strpos(strtolower($mhs['npm']), $keyword) !== false ||
+            strpos(strtolower($mhs['nama']), $keyword) !== false ||
+            strpos(strtolower($mhs['program_studi']), $keyword) !== false
         ) {
             $filtered[] = $mhs;
         }
@@ -89,61 +88,23 @@ function count_total_mahasiswa() {
 function tambah_mahasiswa($npm, $nama, $program_studi, $angkatan, $email) {
     init_mahasiswa_session();
 
-    // Sanitasi data
-    // Percobaan 4-3 Langkah 3
     $npm = sanitize($npm);
     $nama = sanitize($nama);
     $program_studi = sanitize($program_studi);
-    $angkatan = sanitize($angkatan);
+    $angkatan = (int) $angkatan;
     $email = sanitize($email);
 
-    // Validasi Server-Side
     if (empty($npm) || empty($nama) || empty($program_studi) || empty($angkatan) || empty($email)) {
-        return [
-            'status' => false,
-            'message' => 'Semua kolom formulir wajib diisi!'
-        ];
+        return ['status' => false, 'message' => 'Semua field formulir wajib diisi!'];
     }
 
-    if (!preg_match('/^[0-9]{8,12}$/', $npm)) {
-        return [
-            'status' => false,
-            'message' => 'npm harus berupa angka 8 hingga 12 digit!'
-        ];
-    }
-
-    // Cek duplikasi npm
+    // Cek duplikasi NPM
     foreach ($_SESSION['daftar_mahasiswa'] as $mhs) {
         if ($mhs['npm'] === $npm) {
-            return [
-                'status' => false,
-                'message' => 'npm sudah terdaftar! Harap gunakan npm lain.'
-            ];
+            return ['status' => false, 'message' => "NPM {$npm} sudah terdaftar!"];
         }
     }
 
-    if (strlen($nama) < 3) {
-        return [
-            'status' => false,
-            'message' => 'Nama lengkap minimal 3 karakter!'
-        ];
-    }
-
-    if ($angkatan < 2018 || $angkatan > 2026) {
-        return [
-            'status' => false,
-            'message' => 'Tahun angkatan harus berada antara 2018 hingga 2026!'
-        ];
-    }
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return [
-            'status' => false,
-            'message' => 'Format alamat email tidak valid!'
-        ];
-    }
-
-    // Tambahkan data baru ke array session
     $_SESSION['daftar_mahasiswa'][] = [
         'npm' => $npm,
         'nama' => $nama,
@@ -152,49 +113,32 @@ function tambah_mahasiswa($npm, $nama, $program_studi, $angkatan, $email) {
         'email' => $email
     ];
 
-    return [
-        'status' => true,
-        'message' => "Data mahasiswa {$nama} (npm: {$npm}) berhasil ditambahkan!"
-    ];
+    return ['status' => true, 'message' => 'Data mahasiswa berhasil ditambahkan!'];
 }
 
 /**
- * Menghapus data mahasiswa dari session berdasarkan npm
+ * Menghapus data mahasiswa berdasarkan NPM
  */
 function hapus_mahasiswa($npm) {
     init_mahasiswa_session();
     $npm = sanitize($npm);
-    $found = false;
-    $namaDihapus = '';
 
     foreach ($_SESSION['daftar_mahasiswa'] as $index => $mhs) {
         if ($mhs['npm'] === $npm) {
-            $namaDihapus = $mhs['nama'];
             unset($_SESSION['daftar_mahasiswa'][$index]);
-            // Re-index array
             $_SESSION['daftar_mahasiswa'] = array_values($_SESSION['daftar_mahasiswa']);
-            $found = true;
-            break;
+            return ['status' => true, 'message' => 'Data mahasiswa berhasil dihapus!'];
         }
     }
 
-    if ($found) {
-        return [
-            'status' => true,
-            'message' => "Data mahasiswa {$namaDihapus} (npm: {$npm}) berhasil dihapus."
-        ];
-    }
-
-    return [
-        'status' => false,
-        'message' => "Data mahasiswa dengan npm {$npm} tidak ditemukan."
-    ];
+    return ['status' => false, 'message' => 'Data mahasiswa tidak ditemukan!'];
 }
 
 /**
  * Set flash message untuk feedback notifikasi pengguna
  */
 function set_flash_message($type, $message) {
+    init_mahasiswa_session();
     $_SESSION['flash_message'] = [
         'type' => $type,
         'message' => $message
@@ -205,11 +149,11 @@ function set_flash_message($type, $message) {
  * Ambil dan hapus flash message
  */
 function get_flash_message() {
+    init_mahasiswa_session();
     if (isset($_SESSION['flash_message'])) {
-        $message = $_SESSION['flash_message'];
+        $flash = $_SESSION['flash_message'];
         unset($_SESSION['flash_message']);
-        return $message;
+        return $flash;
     }
-
     return null;
 }
